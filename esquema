@@ -1,0 +1,194 @@
+openapi: 3.1.0
+info:
+  title: Academic Article Generator API
+  description: API personalizada para generar artículos académicos basados en fuentes proporcionadas. Compatible con
+    ChatGPT personalizado para generar contenido estructurado en lenguaje formal y en tercera persona.
+  version: 1.0.0
+paths:
+  /uploadSources:
+    post:
+      operationId: uploadSources
+      summary: Cargar fuentes para el artículo
+      description: Permite cargar documentos, enlaces o textos que se usarán como base para generar el artículo académico.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sources:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista de textos, enlaces o documentos como fuentes.
+                metadata:
+                  type: object
+                  properties:
+                    purpose:
+                      type: string
+                      description: Propósito del artículo, e.g., explorar un tema o resolver una pregunta.
+                    topic:
+                      type: string
+                      description: Tema principal del artículo.
+      responses:
+        "200":
+          description: Fuentes cargadas exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadId:
+                    type: string
+                    description: Identificador único asignado a las fuentes cargadas.
+        "400":
+          description: Error en la carga de fuentes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Detalles del error.
+  /generateSection:
+    post:
+      operationId: generateSection
+      summary: Generar una sección del artículo
+      description: Crea una sección específica del artículo académico, como la introducción, el marco teórico, o la metodología.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: Identificador único de las fuentes cargadas.
+                section:
+                  type: string
+                  enum:
+                    - introduction
+                    - theoreticalFramework
+                    - background
+                    - researchProblem
+                    - methodology
+                    - results
+                    - conclusions
+                    - limitations
+                  description: Sección a generar.
+      responses:
+        "200":
+          description: Sección generada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sectionContent:
+                    type: string
+                    description: Contenido de la sección generada.
+        "404":
+          description: No se encontraron fuentes asociadas al identificador proporcionado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Detalle del error.
+  /generateArticle:
+    post:
+      operationId: generateArticle
+      summary: Generar artículo completo
+      description: Genera el texto completo del artículo académico basado en las fuentes y el propósito indicado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uploadId:
+                  type: string
+                  description: Identificador único de las fuentes cargadas.
+                formattingStyle:
+                  type: string
+                  enum:
+                    - APA
+                    - MLA
+                    - Chicago
+                  description: Estilo de formato deseado para el artículo.
+      responses:
+        "200":
+          description: Artículo completo generado con éxito.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  article:
+                    type: string
+                    description: Texto completo del artículo académico generado.
+        "404":
+          description: No se encontraron fuentes asociadas al identificador proporcionado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Detalle del error.
+  /checkStatus:
+    get:
+      operationId: checkStatus
+      summary: Consultar el estado de generación
+      description: Verifica el estado de una solicitud de generación de sección o artículo completo.
+      parameters:
+        - name: uploadId
+          in: query
+          required: true
+          description: Identificador único de las fuentes cargadas.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estado de la solicitud.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - processing
+                      - completed
+                      - failed
+                    description: Estado actual de la solicitud.
+                  progress:
+                    type: number
+                    format: float
+                    description: Porcentaje de progreso en la generación.
+        "404":
+          description: No se encontró la solicitud asociada al identificador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Detalle del error.
+tags:
+  - name: Sources
+    description: Operaciones relacionadas con la carga de fuentes.
+  - name: Sections
+    description: Operaciones para generar secciones individuales del artículo.
+  - name: Articles
+    description: Operaciones para generar el artículo completo.
